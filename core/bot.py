@@ -20,14 +20,6 @@ class ZoltarBot(commands.Bot):
         )
         self.logger = logger
 
-    @tasks.loop(minutes=1.0)
-    async def status_task(self) -> None:
-        """
-        Setup the game status task of the bot.
-        """
-        statuses = ["with you!", "with Krypton!", "with humans!"]
-        await self.change_presence(activity=discord.Game(random.choice(statuses)))
-
     async def load_cogs(self) -> None:
         """
         The code in this function is executed whenever the bot will start.
