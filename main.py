@@ -9,6 +9,7 @@ GUILD = os.getenv('DISCORD_GUILD')
 
 def main():
     intents = discord.Intents.default()
+    intents.message_content = True
     bot = ZoltarBot(intents=intents)
     bot.run(TOKEN)
 
