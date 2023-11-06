@@ -1,5 +1,6 @@
 import logging
 
+
 class LoggingFormatter(logging.Formatter):
     # Colors
     black = "\x1b[30m"
@@ -29,7 +30,8 @@ class LoggingFormatter(logging.Formatter):
         format = format.replace("(green)", self.green + self.bold)
         formatter = logging.Formatter(format, "%Y-%m-%d %H:%M:%S", style="{")
         return formatter.format(record)
-    
+
+
 logger = logging.getLogger("discord_bot")
 logger.setLevel(logging.INFO)
 

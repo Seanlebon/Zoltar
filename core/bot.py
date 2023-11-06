@@ -1,20 +1,17 @@
-import json
 import os
 import platform
-import random
-import sys
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from discord.ext.commands import Context
-from dotenv import load_dotenv
+
 from utils.logger import logger
 
 
 class ZoltarBot(commands.Bot):
     def __init__(self, intents) -> None:
         super().__init__(
-            command_prefix=commands.when_mentioned_or('!'),
+            command_prefix=commands.when_mentioned_or("!"),
             intents=intents,
             help_command=None,
         )
@@ -24,7 +21,9 @@ class ZoltarBot(commands.Bot):
         """
         The code in this function is executed whenever the bot will start.
         """
-        for file in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/../cogs"):
+        for file in os.listdir(
+            f"{os.path.realpath(os.path.dirname(__file__))}/../cogs"
+        ):
             if file.endswith(".py"):
                 extension = file[:-3]
                 try:
@@ -49,7 +48,7 @@ class ZoltarBot(commands.Bot):
         self.logger.info("-------------------")
         await self.load_cogs()
         # self.status_task.start()
-    
+
     async def on_command_error(self, context: Context, error) -> None:
         """
         The code in this event is executed every time a normal valid command catches an error.
@@ -61,8 +60,18 @@ class ZoltarBot(commands.Bot):
             minutes, seconds = divmod(error.retry_after, 60)
             hours, minutes = divmod(minutes, 60)
             hours = hours % 24
+
+            def resetTimeLog(time_unit, unit_string):
+                return (
+                    f"{round(time_unit)} {unit_string}" if round(time_unit) > 0 else ""
+                )
+
+            desc = (
+                f"**Please slow down** - You can use this command again in {resetTimeLog(hours,'hours')} {resetTimeLog(minutes,'minutes')} {resetTimeLog(seconds,'seconds')}.",
+            )
+
             embed = discord.Embed(
-                description=f"**Please slow down** - You can use this command again in {f'{round(hours)} hours' if round(hours) > 0 else ''} {f'{round(minutes)} minutes' if round(minutes) > 0 else ''} {f'{round(seconds)} seconds' if round(seconds) > 0 else ''}.",
+                description=desc,
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
