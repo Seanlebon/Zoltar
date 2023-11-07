@@ -4,12 +4,12 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 
-class Fun(commands.Cog):
+class Fun(commands.Cog, name="fun"):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.hybrid_command(name="randomfact", description="Get a random fact.")
-    async def randomfact(self, context: Context) -> None:
+    async def randomfact(self, ctx: Context) -> None:
         """
         Get a random fact.
 
@@ -29,7 +29,7 @@ class Fun(commands.Cog):
                         description="There is something wrong with the API, please try again later",
                         color=0xE02B2B,
                     )
-                await context.send(embed=embed)
+                await ctx.send(embed=embed)
 
 
 async def setup(bot) -> None:
