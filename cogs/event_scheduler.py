@@ -15,14 +15,16 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         description="Base event command. Does not do anything",
     )
     async def event(self, ctx: Context) -> None:
-        if ctx.invoked_subcommand:
+        if not ctx.invoked_subcommand:
             passed = ctx.subcommand_passed
             msgs = (
-                "No command was passed, please look at !help to continue",
-                f"No, {passed} does not belong to the event command please look at !help to continue",
+                "The !event command requires a subcommand, please use !help to continue",
+                f"**{passed}** does not belong to the event command please look at !help to continue",
             )
-            self.logger.info(msgs[0] if passed else msgs[1])
-            await ctx.send(msgs[0] if passed else msgs[1])
+            self.logger.info(f"WHAT DA HELL {passed}")
+            self.logger.info(msgs[1] if passed else msgs[0])
+            await ctx.send(msgs[1] if passed else msgs[0])
+        self.logger.info(f"{ctx.invoked_subcommand} we out heree")
 
     @event.command(
         name="create",
