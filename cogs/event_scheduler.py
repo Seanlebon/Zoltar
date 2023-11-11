@@ -6,7 +6,7 @@ from utils.logger import logger
 
 
 class EventScheduler(commands.Cog, name="event_scheduler"):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.logger = logger
 
@@ -18,22 +18,32 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         if not ctx.invoked_subcommand:
             passed = ctx.subcommand_passed
             msgs = (
-                "The !event command requires a subcommand, please use !help to continue",
-                f"**{passed}** does not belong to the event command please look at !help to continue",
+                "The !event command requires a subcommand, please look at !help to continue",
+                f"**{passed}** does not belong to the event command, please look at !help to continue",
             )
-            self.logger.info(f"WHAT DA HELL {passed}")
             self.logger.info(msgs[1] if passed else msgs[0])
-            await ctx.send(msgs[1] if passed else msgs[0])
-        self.logger.info(f"{ctx.invoked_subcommand} we out heree")
+            await ctx.defer(ephemeral=True)
+            await ctx.reply(
+                msgs[1] if passed else msgs[0],
+                ephemeral=True,
+            )
 
     @event.command(
         name="create",
-        description="A event creation modal will pop up, and can create an event with configurations.",
+        description="Zoltar will create an event for you in a private discord",
     )
     async def create(self, ctx: Context) -> None:
-        self.logger.info("create my guys")
+        self.logger.info("Making event")
+        pass
+
+    @event.command(
+        name="quick",
+        description="An event creation modal will pop up, and can create an event with specified configurations.",
+    )
+    async def quick(self, ctx: Context) -> None:
+        self.logger.info("Making quick event")
         pass
 
 
-async def setup(bot) -> None:
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(EventScheduler(bot))

@@ -5,7 +5,7 @@ from discord.ext.commands import Context
 
 
 class Fun(commands.Cog, name="fun"):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.hybrid_command(name="randomfact", description="Get a random fact.")
@@ -32,5 +32,5 @@ class Fun(commands.Cog, name="fun"):
                 await ctx.send(embed=embed)
 
 
-async def setup(bot) -> None:
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Fun(bot))
