@@ -38,10 +38,11 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
 
     @event.command(
         name="quick",
-        description="An event creation modal will pop up, and can create an event with specified configurations.",
+        description="Zoltar will create an event given an event name and event date",
     )
     async def quick(self, ctx: Context) -> None:
         self.logger.info("Making quick event")
+        ctx.reply("Can you see this?")
         pass
 
 
