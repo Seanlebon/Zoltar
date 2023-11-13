@@ -40,7 +40,7 @@ class General(commands.Cog, name="general"):
                 inline=False,
             )
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot) -> None:
