@@ -11,7 +11,6 @@ from utils.logger import logger
 
 class EventView(discord.ui.View):
     message: Message
-    embed: discord.Embed
 
     def __init__(self, event_name: str, event_date: str):
         super().__init__()
@@ -26,20 +25,29 @@ class EventView(discord.ui.View):
         self.maybe_count = 0
         self.decline_count = 0
 
+        self.author = ""
+
     # entry point from a command
     async def send(self, ctx: Context):
-        self.embed = discord.Embed(
+        self.auther = ctx.author
+
+        embed = discord.Embed(
             title=f"Event: {self.event_name}",
-            description=f"You are invited to {self.event_name}\ncreated by: {ctx.author}",
+            description=f"You are invited to {self.event_name}\ncreated by: {self.author}",
             color=0xBEBEFE,
         )
-        self.message = await ctx.send(embed=self.embed, view=self)
+        self.message = await ctx.send(embed=embed, view=self)
 
     async def update_message(self):
         await self.message.edit(embed=self.create_embed(), view=self)
 
     def create_embed(self):
         # make this more readable
+        embed = discord.Embed(
+            title=f"Event: {self.event_name}",
+            description=f"You are invited to {self.event_name}\ncreated by: {self.author}",
+            color=0xBEBEFE,
+        )
         event_field_items = [
             ("Accepted", self.accepted_users, self.accept_count),
             ("Maybe", self.maybe_users, self.maybe_count),
@@ -47,20 +55,20 @@ class EventView(discord.ui.View):
         ]
 
         for field_name, field_values, field_count in event_field_items:
-            self.embed.add_field(
+            embed.add_field(
                 name=f"{field_name} ({field_count})",
                 value="\n".join([item for item in field_values]),
                 inline=True,
             )
-        return self.embed
+        return embed
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.green)
     async def accept(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         if interaction.user.name not in self.accepted_users:
-            self.accept_count += 1
-            self.maybe_count -= 1
-            self.decline_count -= 1
+            self.accept_count = max(0, self.accept_count + 1)
+            self.maybe_count = max(0, self.maybe_count - 1)
+            self.decline_count = max(0, self.decline_count - 1)
 
             self.accepted_users.add(interaction.user.name)
             self.maybe_users.discard(interaction.user.name)
@@ -71,9 +79,9 @@ class EventView(discord.ui.View):
     async def maybe(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         if interaction.user.name not in self.maybe_users:
-            self.accept_count -= 1
-            self.maybe_count += 1
-            self.decline_count -= 1
+            self.accept_count = max(0, self.accept_count - 1)
+            self.maybe_count = max(0, self.maybe_count + 1)
+            self.decline_count = max(0, self.decline_count - 1)
 
             self.accepted_users.discard(interaction.user.name)
             self.maybe_users.add(interaction.user.name)
@@ -86,9 +94,9 @@ class EventView(discord.ui.View):
     ):
         await interaction.response.defer()
         if interaction.user.name not in self.declined_users:
-            self.accept_count -= 1
-            self.maybe_count -= 1
-            self.decline_count += 1
+            self.accept_count = max(0, self.accept_count - 1)
+            self.maybe_count = max(0, self.maybe_count - 1)
+            self.decline_count = max(0, self.decline_count + 1)
 
             self.accepted_users.discard(interaction.user.name)
             self.maybe_users.discard(interaction.user.name)
