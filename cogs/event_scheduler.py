@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 import discord
-from discord import Message
+from discord import Member, Message, User
 from discord.ext import commands
 from discord.ext.commands import Context
 
@@ -11,6 +11,7 @@ from utils.logger import logger
 
 class EventView(discord.ui.View):
     message: Message
+    author: User | Member
 
     def __init__(self, event_name: str, event_date: str):
         super().__init__()
@@ -25,15 +26,13 @@ class EventView(discord.ui.View):
         self.maybe_count = 0
         self.decline_count = 0
 
-        self.author = ""
-
     # entry point from a command
     async def send(self, ctx: Context):
-        self.auther = ctx.author
+        self.author = ctx.author
 
         embed = discord.Embed(
             title=f"Event: {self.event_name}",
-            description=f"You are invited to {self.event_name}\ncreated by: {self.author}",
+            description=f"You are invited to {self.event_name}\ncreated by: {self.author.name}",
             color=0xBEBEFE,
         )
         self.message = await ctx.send(embed=embed, view=self)
@@ -45,7 +44,7 @@ class EventView(discord.ui.View):
         # make this more readable
         embed = discord.Embed(
             title=f"Event: {self.event_name}",
-            description=f"You are invited to {self.event_name}\ncreated by: {self.author}",
+            description=f"You are invited to {self.event_name}\ncreated by: {self.author.name}",
             color=0xBEBEFE,
         )
         event_field_items = [
