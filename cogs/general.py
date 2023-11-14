@@ -2,9 +2,11 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context, Group
 
+from core.bot import ZoltarBot
+
 
 class General(commands.Cog, name="general"):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ZoltarBot):
         self.bot = bot
 
     @commands.hybrid_command(
@@ -43,5 +45,5 @@ class General(commands.Cog, name="general"):
         await ctx.send(embed=embed, ephemeral=True)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: ZoltarBot) -> None:
     await bot.add_cog(General(bot))

@@ -3,14 +3,15 @@ import os
 import discord
 from dotenv import load_dotenv
 
+from config import TOKEN
 from core.bot import ZoltarBot
+from db.firebase_service import FirebaseService
 
 load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
-GUILD = os.getenv("DISCORD_GUILD")
 
 
 def main():
+    service = FirebaseService()
     intents = discord.Intents.default()
     intents.message_content = True
     bot = ZoltarBot(intents=intents)

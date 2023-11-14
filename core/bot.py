@@ -2,20 +2,23 @@ import os
 import platform
 
 import discord
+from discord import Intents
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from db.firebase_service import FirebaseService
 from utils.logger import logger
 
 
 class ZoltarBot(commands.Bot):
-    def __init__(self, intents) -> None:
+    def __init__(self, intents: Intents, service: FirebaseService) -> None:
         super().__init__(
             command_prefix=commands.when_mentioned_or("!"),
             intents=intents,
             help_command=None,
         )
         self.logger = logger
+        self.service = service
 
     async def load_cogs(self) -> None:
         """

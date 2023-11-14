@@ -6,6 +6,7 @@ from discord import Member, Message, User
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from core.bot import ZoltarBot
 from utils.logger import logger
 
 
@@ -104,9 +105,10 @@ class EventView(discord.ui.View):
 
 
 class EventScheduler(commands.Cog, name="event_scheduler"):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ZoltarBot):
         self.bot = bot
         self.logger = logger
+        self.db = bot.service.db
 
     @commands.hybrid_group(
         name="event",
@@ -153,5 +155,5 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         await view.send(ctx)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: ZoltarBot) -> None:
     await bot.add_cog(EventScheduler(bot))

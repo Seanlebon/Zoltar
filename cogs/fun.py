@@ -3,9 +3,11 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from core.bot import ZoltarBot
+
 
 class Fun(commands.Cog, name="fun"):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ZoltarBot):
         self.bot = bot
 
     @commands.hybrid_command(name="randomfact", description="Get a random fact.")
@@ -32,5 +34,5 @@ class Fun(commands.Cog, name="fun"):
                 await ctx.send(embed=embed)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: ZoltarBot) -> None:
     await bot.add_cog(Fun(bot))

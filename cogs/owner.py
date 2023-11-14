@@ -3,6 +3,8 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from core.bot import ZoltarBot
+
 
 class Owner(commands.Cog, name="owner"):
     def __init__(self, bot: commands.Bot) -> None:
@@ -84,5 +86,5 @@ class Owner(commands.Cog, name="owner"):
         await context.send(embed=embed)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: ZoltarBot) -> None:
     await bot.add_cog(Owner(bot))
