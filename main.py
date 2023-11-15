@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import discord
@@ -14,7 +15,7 @@ def main():
     service = FirebaseService()
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = ZoltarBot(intents=intents)
+    bot = ZoltarBot(intents=intents, service=service)
     bot.run(TOKEN)
 
 
