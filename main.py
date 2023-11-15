@@ -12,10 +12,9 @@ load_dotenv()
 
 
 def main():
-    service = FirebaseService()
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = ZoltarBot(intents=intents, service=service)
+    bot = ZoltarBot(intents=intents)
     bot.run(TOKEN)
 
 

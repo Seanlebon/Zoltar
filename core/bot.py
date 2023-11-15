@@ -11,14 +11,13 @@ from utils.logger import logger
 
 
 class ZoltarBot(commands.Bot):
-    def __init__(self, intents: Intents, service: FirebaseService) -> None:
+    def __init__(self, intents: Intents) -> None:
         super().__init__(
             command_prefix=commands.when_mentioned_or("!"),
             intents=intents,
             help_command=None,
         )
         self.logger = logger
-        self.service = service
 
     async def load_cogs(self) -> None:
         """
@@ -50,7 +49,6 @@ class ZoltarBot(commands.Bot):
         )
         self.logger.info("-------------------")
         await self.load_cogs()
-        # self.status_task.start()
 
     async def on_command_error(self, context: Context, error) -> None:
         """

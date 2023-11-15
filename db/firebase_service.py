@@ -23,20 +23,22 @@ class FirebaseService:
 
     async def create_db_event(
         self,
-        creator_name: str,
+        author_name: str,
         name: str,
-        date: str,
+        start_date: str,
+        end_date: str,
         accepted_users: set[str] = set(),
         maybe_users: set[str] = set(),
         declined_users: set[str] = set(),
         collection_name: str = "Events",
-    ):
+    ) -> str:
         event_id = str(uuid.uuid4())
         data_to_set = {
             "event_id": event_id,
-            "creator_name": creator_name,
+            "author_name": author_name,
             "name": name,
-            "date": date,
+            "start_date": start_date,
+            "end_date": end_date,
             "accepted_users": list(accepted_users),
             "maybe_users": list(maybe_users),
             "declined_users": list(declined_users),
@@ -44,6 +46,44 @@ class FirebaseService:
         doc_ref = self.db.collection(collection_name).document(event_id)
         doc_ref.set(data_to_set)
         print(f"Data set in document {doc_ref.id}")
+        return event_id
+
+    # Maybe I should separate this out into separate functios?
+    async def update_event_by_id(
+        self,
+        event_id,
+        name: str = None,
+        start_date: str = None,
+        end_date: str = None,
+        accepted_users: set[str] = None,
+        maybe_users: set[str] = None,
+        declined_users: set[str] = None,
+        collection_name: str = "Events",
+    ) -> None:
+        doc_ref = self.db.collection(collection_name).document(event_id)
+
+        if name is not None:
+            doc_ref.update({"name": name})
+
+        if start_date is not None:
+            doc_ref.update({"start_date": start_date})
+
+        if end_date is not None:
+            doc_ref.update({"end_date": end_date})
+
+        if (
+            accepted_users is not None
+            and maybe_users is not None
+            and declined_users is not None
+        ):
+            doc_ref.update(
+                {
+                    "accepted_users": list(accepted_users),
+                    "maybe_users": list(maybe_users),
+                    "declined_users": list(declined_users),
+                }
+            )
+        return
 
     async def get_user_by_id(
         self, user_id: str, collection_name: str = "Users"
@@ -65,11 +105,14 @@ class FirebaseService:
         try:
             doc_snapshot = doc_ref.get()
             event_data = doc_snapshot.to_dict()
+            event_data["accepted_users"] = set(event_data.get("accepted_users", []))
+            event_data["maybe_users"] = set(event_data.get("maybe_users", []))
+            event_data["declined_users"] = set(event_data.get("declined_users", []))
             print("Event Data retrieved Successfully")
+            return event_data
         except NotFound:
             print("Document does not exist.")
+            return
 
-        event_data["accepted_users"] = set(event_data.get("accepted_users", []))
-        event_data["maybe_users"] = set(event_data.get("maybe_users", []))
-        event_data["declined_users"] = set(event_data.get("declined_users", []))
-        return event_data
+
+service = FirebaseService()

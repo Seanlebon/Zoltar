@@ -7,17 +7,20 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from core.bot import ZoltarBot
+from db.firebase_service import service
 from utils.logger import logger
 
 
 class EventView(discord.ui.View):
     message: Message
     author: User | Member
+    event_id: str
 
-    def __init__(self, event_name: str, event_date: str):
+    def __init__(self, event_name: str, start_date: str, end_date: str):
         super().__init__()
         self.event_name = event_name
-        self.event_date = event_date
+        self.start_date = start_date
+        self.end_date = end_date
 
         self.accepted_users = set()
         self.maybe_users = set()
@@ -36,22 +39,34 @@ class EventView(discord.ui.View):
             description=f"You are invited to {self.event_name}\ncreated by: {self.author.name}",
             color=0xBEBEFE,
         )
+        self.event_id = await service.create_db_event(
+            author_name=self.author.name,
+            name=self.event_name,
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
         self.message = await ctx.send(embed=embed, view=self)
 
     async def update_message(self):
-        await self.message.edit(embed=self.create_embed(), view=self)
+        event_data = await service.get_event_by_id(event_id=self.event_id)
 
-    def create_embed(self):
-        # make this more readable
         embed = discord.Embed(
-            title=f"Event: {self.event_name}",
-            description=f"You are invited to {self.event_name}\ncreated by: {self.author.name}",
+            title=f"Event: {event_data['name']}",
+            description=f"You are invited to {event_data['name']}\ncreated by: {event_data['author_name']}",
             color=0xBEBEFE,
         )
         event_field_items = [
-            ("Accepted", self.accepted_users, self.accept_count),
-            ("Maybe", self.maybe_users, self.maybe_count),
-            ("Declined", self.declined_users, self.decline_count),
+            (
+                "Accepted",
+                event_data["accepted_users"],
+                len(event_data["accepted_users"]),
+            ),
+            ("Maybe", event_data["maybe_users"], len(event_data["maybe_users"])),
+            (
+                "Declined",
+                event_data["declined_users"],
+                len(event_data["declined_users"]),
+            ),
         ]
 
         for field_name, field_values, field_count in event_field_items:
@@ -60,32 +75,38 @@ class EventView(discord.ui.View):
                 value="\n".join([item for item in field_values]),
                 inline=True,
             )
-        return embed
+
+        await self.message.edit(embed=embed, view=self)
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.green)
     async def accept(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         if interaction.user.name not in self.accepted_users:
-            self.accept_count = max(0, self.accept_count + 1)
-            self.maybe_count = max(0, self.maybe_count - 1)
-            self.decline_count = max(0, self.decline_count - 1)
-
             self.accepted_users.add(interaction.user.name)
             self.maybe_users.discard(interaction.user.name)
             self.declined_users.discard(interaction.user.name)
+            await service.update_event_by_id(
+                event_id=self.event_id,
+                accepted_users=self.accepted_users,
+                maybe_users=self.maybe_users,
+                declined_users=self.declined_users,
+            )
             await self.update_message()
 
     @discord.ui.button(label="Maybe", style=discord.ButtonStyle.grey)
     async def maybe(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         if interaction.user.name not in self.maybe_users:
-            self.accept_count = max(0, self.accept_count - 1)
-            self.maybe_count = max(0, self.maybe_count + 1)
-            self.decline_count = max(0, self.decline_count - 1)
-
             self.accepted_users.discard(interaction.user.name)
             self.maybe_users.add(interaction.user.name)
             self.declined_users.discard(interaction.user.name)
+            print(self.accepted_users)
+            await service.update_event_by_id(
+                event_id=self.event_id,
+                accepted_users=self.accepted_users,
+                maybe_users=self.maybe_users,
+                declined_users=self.declined_users,
+            )
             await self.update_message()
 
     @discord.ui.button(label="Decline", style=discord.ButtonStyle.red)
@@ -94,13 +115,15 @@ class EventView(discord.ui.View):
     ):
         await interaction.response.defer()
         if interaction.user.name not in self.declined_users:
-            self.accept_count = max(0, self.accept_count - 1)
-            self.maybe_count = max(0, self.maybe_count - 1)
-            self.decline_count = max(0, self.decline_count + 1)
-
-            self.accepted_users.discard(interaction.user.name)
-            self.maybe_users.discard(interaction.user.name)
-            self.declined_users.add(interaction.user.name)
+            self.accepted_users.discard(interaction.user.name),
+            self.maybe_users.discard(interaction.user.name),
+            self.declined_users.add(interaction.user.name),
+            await service.update_event_by_id(
+                event_id=self.event_id,
+                accepted_users=self.accepted_users,
+                maybe_users=self.maybe_users,
+                declined_users=self.declined_users,
+            )
             await self.update_message()
 
 
@@ -108,7 +131,6 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
     def __init__(self, bot: ZoltarBot):
         self.bot = bot
         self.logger = logger
-        self.db = bot.service.db
 
     @commands.hybrid_group(
         name="event",
@@ -140,18 +162,10 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         name="quick",
         description="Zoltar will create an event reminder (no end time) given an event name and event datetime",
     )
-    async def quick(self, ctx: Context, event_name: str, start: str) -> None:
-        # embed = discord.Embed(title="Test", description="amongus")
-
-        # embed.add_field(
-        #     name="accepted", value=f"{ctx.author}\n{ctx.author}", inline=True
-        # )
-        # embed.add_field(name="maybe", value=ctx.author, inline=True)
-        # embed.add_field(name="declined", value=ctx.author, inline=True)
-
-        # await ctx.send(embed=embed)
-        # pass
-        view = EventView(event_name, start)
+    async def quick(
+        self, ctx: Context, event_name: str, start_date: str, end_date: str
+    ) -> None:
+        view = EventView(event_name, start_date, end_date)
         await view.send(ctx)
 
 
