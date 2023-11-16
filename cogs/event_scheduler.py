@@ -32,13 +32,13 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
                 ephemeral=True,
             )
 
-    @event.command(
-        name="create",
-        description="Zoltar will create an event for you in a private discord",
-    )
-    async def create(self, ctx: Context) -> None:
-        self.logger.info("Making event")
-        pass
+    # @event.command(
+    #     name="create",
+    #     description="Zoltar will create an event for you in a private discord",
+    # )
+    # async def create(self, ctx: Context) -> None:
+    #     self.logger.info("Making event")
+    #     pass
 
     @event.command(
         name="quick",
@@ -50,12 +50,11 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         event_name: str,
         start_time: str,
         end_time: str,
-        tz: str = "US/Eastern",
     ) -> None:
         # Checking date_time strings:
-        start_time_dt = set_dt(start_time)
-        end_time_dt = set_dt(end_time)
-        view = EventView(event_name, start_time_dt, end_time_dt)
+        # start_time_dt = set_dt(start_time)
+        # end_time_dt = set_dt(end_time)
+        view = EventView(event_name, start_time, end_time)
         await view.send(ctx)
 
 
@@ -65,6 +64,6 @@ async def setup(bot: ZoltarBot) -> None:
 
 def set_dt(dt_string: str) -> datetime:
     try:
-        return datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S %Z")
+        return datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
     except ValueError:
         logger.exception("The provided argument is not a valid datetime.")

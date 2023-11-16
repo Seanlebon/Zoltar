@@ -3,12 +3,11 @@ import uuid
 import firebase_admin
 from firebase_admin import App, credentials
 from firebase_admin.credentials import Certificate
-from google.api_core.client_options import ClientOptions
 from google.cloud import firestore
-from google.cloud.exceptions import NotFound
 from google.cloud.firestore import Client
 
 from config import FIRESTORE_PROJECT_ID, GOOGLE_CREDS
+from utils.logger import logger
 
 
 class FirebaseService:
@@ -21,6 +20,7 @@ class FirebaseService:
         self.creds = credentials.Certificate(GOOGLE_CREDS)
         self.app = firebase_admin.initialize_app()
         self.db = firestore.Client(project=FIRESTORE_PROJECT_ID)
+        self.logger = logger
 
     async def create_db_event(
         self,
@@ -47,10 +47,10 @@ class FirebaseService:
         try:
             doc_ref = self.db.collection(collection_name).document(event_id)
             doc_ref.set(data_to_set)
-            print(f"Data set in document {doc_ref.id}")
+            self.logger.info(f"Data set in document {doc_ref.id}")
             return event_id
         except Exception as e:
-            print(f"Error creating event: {e}")
+            self.logger.exception(f"Error creating event: {e}")
 
     async def get_event_by_id(
         self, event_id: str, collection_name: str = "Events"
@@ -62,10 +62,16 @@ class FirebaseService:
             event_data["accepted_users"] = set(event_data.get("accepted_users", []))
             event_data["maybe_users"] = set(event_data.get("maybe_users", []))
             event_data["declined_users"] = set(event_data.get("declined_users", []))
-            print("Event Data retrieved Successfully")
+            self.logger.info("Event Data retrieved Successfully")
             return event_data
         except Exception as e:
-            print(f"Error retrieving event: {e}")
+            self.logger.exception(f"Error retrieving event: {e}")
+
+    async def get_events_by_guild(
+        self,
+        guild,
+    ):
+        pass
 
     # Maybe I should separate this out into separate functios?
     async def update_event_by_id(
@@ -104,7 +110,7 @@ class FirebaseService:
                     }
                 )
         except Exception as e:
-            print(f"Error while updating document: {e}")
+            self.logger.exception(f"Error while updating document: {e}")
 
     async def delete_event_by_id(
         self,
@@ -115,7 +121,7 @@ class FirebaseService:
             doc_ref = self.db.collection(collection_name).document(event_id)
             doc_ref.delete()
         except Exception as e:
-            print(f"Error while deleting document: {e}")
+            self.logger.exception(f"Error while deleting document: {e}")
 
 
 service = FirebaseService()

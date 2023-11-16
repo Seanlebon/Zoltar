@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 import discord
-from discord import Embed, Member, Message, User
+from discord import Embed, Guild, Interaction, Member, Message, User
 from discord.ext.commands import Context
 
 from db.firebase_service import service
@@ -17,6 +17,7 @@ class EmbedFieldLabel(Enum):
 class EventView(discord.ui.View):
     message: Message
     author: User | Member
+    guild: Guild
     event_id: str
 
     def __init__(self, event_name: str, start_time: str, end_time: str):
@@ -60,7 +61,7 @@ class EventView(discord.ui.View):
     # entry point from a command
     async def send(self, ctx: Context):
         self.author = ctx.author
-
+        self.guild = ctx.guild
         embed = self._get_default_embed()
 
         self.accepted_users.add(self.author.name)
@@ -72,6 +73,7 @@ class EventView(discord.ui.View):
             end_time=self.end_time,
             accepted_users=self.accepted_users,
         )
+
         event_data = await service.get_event_by_id(self.event_id)
         embed = self._add_all_menu_embed_fields(embed, event_data)
         self.message = await ctx.send(embed=embed, view=self)
@@ -85,7 +87,7 @@ class EventView(discord.ui.View):
         await self.message.edit(embed=embed, view=self)
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.green)
-    async def accept(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def accept(self, interaction: Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         if interaction.user.name not in self.accepted_users:
             self.accepted_users.add(interaction.user.name)
@@ -101,7 +103,7 @@ class EventView(discord.ui.View):
             await self.update_message()
 
     @discord.ui.button(label="Maybe", style=discord.ButtonStyle.grey)
-    async def maybe(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def maybe(self, interaction: Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         if interaction.user.name not in self.maybe_users:
             self.accepted_users.discard(interaction.user.name)
@@ -118,9 +120,7 @@ class EventView(discord.ui.View):
             await self.update_message()
 
     @discord.ui.button(label="Decline", style=discord.ButtonStyle.red)
-    async def decline(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def decline(self, interaction: Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         if interaction.user.name not in self.declined_users:
             self.accepted_users.discard(interaction.user.name),
