@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 from config import TOKEN
 from core.bot import ZoltarBot
-from db.firebase_service import FirebaseService
 
 load_dotenv()
 
