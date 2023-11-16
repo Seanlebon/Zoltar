@@ -67,6 +67,7 @@ class EventView(discord.ui.View):
         self.accepted_users.add(self.author.name)
 
         self.event_id = await service.create_db_event(
+            guild_id=self.guild.id,
             author_name=self.author.name,
             name=self.event_name,
             start_time=self.start_time,

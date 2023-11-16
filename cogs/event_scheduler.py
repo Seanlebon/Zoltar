@@ -1,11 +1,12 @@
 from datetime import datetime
 
-import pytz
 from discord.ext import commands
 from discord.ext.commands import Context
 
 from core.bot import ZoltarBot
 from utils.logger import logger
+from views.event_delete_view import EventDeleteView
+from views.event_list_view import EventListView
 from views.event_view import EventView
 
 
@@ -32,13 +33,13 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
                 ephemeral=True,
             )
 
-    # @event.command(
-    #     name="create",
-    #     description="Zoltar will create an event for you in a private discord",
-    # )
-    # async def create(self, ctx: Context) -> None:
-    #     self.logger.info("Making event")
-    #     pass
+    @event.command(
+        name="create",
+        description="Zoltar will create an event for you in a private discord",
+    )
+    async def create(self, ctx: Context) -> None:
+        self.logger.info("Making event")
+        pass
 
     @event.command(
         name="quick",
@@ -52,10 +53,30 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         end_time: str,
     ) -> None:
         # Checking date_time strings:
-        # start_time_dt = set_dt(start_time)
-        # end_time_dt = set_dt(end_time)
+        start_time_dt = set_dt(start_time)
+        end_time_dt = set_dt(end_time)
         view = EventView(event_name, start_time, end_time)
         await view.send(ctx)
+
+    @event.command(
+        name="all",
+        description="Zoltar will create list all the on going events in this server",
+    )
+    async def all(self, ctx: Context):
+        view = EventListView()
+        await view.send(ctx)
+
+    @event.command(
+        name="delete",
+        description="Zoltar will delete and remove an event from this server",
+    )
+    async def delete(
+        self,
+        ctx: Context,
+        event_name: str,
+    ):
+        view = EventDeleteView()
+        await view.send(ctx, event_name)
 
 
 async def setup(bot: ZoltarBot) -> None:

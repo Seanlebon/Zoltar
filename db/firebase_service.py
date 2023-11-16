@@ -5,6 +5,7 @@ from firebase_admin import App, credentials
 from firebase_admin.credentials import Certificate
 from google.cloud import firestore
 from google.cloud.firestore import Client
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 from config import FIRESTORE_PROJECT_ID, GOOGLE_CREDS
 from utils.logger import logger
@@ -24,6 +25,7 @@ class FirebaseService:
 
     async def create_db_event(
         self,
+        guild_id: int,
         author_name: str,
         name: str,
         start_time: str,
@@ -35,6 +37,7 @@ class FirebaseService:
     ) -> str | None:
         event_id = str(uuid.uuid4())
         data_to_set = {
+            "guild_id": guild_id,
             "event_id": event_id,
             "author_name": author_name,
             "name": name,
@@ -53,25 +56,44 @@ class FirebaseService:
             self.logger.exception(f"Error creating event: {e}")
 
     async def get_event_by_id(
-        self, event_id: str, collection_name: str = "Events"
+        self,
+        event_id: str,
+        collection_name: str = "Events",
     ) -> dict | None:
-        doc_ref = self.db.collection(collection_name).document(event_id)
         try:
+            doc_ref = self.db.collection(collection_name).document(event_id)
             doc_snapshot = doc_ref.get()
             event_data = doc_snapshot.to_dict()
             event_data["accepted_users"] = set(event_data.get("accepted_users", []))
             event_data["maybe_users"] = set(event_data.get("maybe_users", []))
             event_data["declined_users"] = set(event_data.get("declined_users", []))
-            self.logger.info("Event Data retrieved Successfully")
+            self.logger.info("Event data retrieved successfully")
             return event_data
         except Exception as e:
             self.logger.exception(f"Error retrieving event: {e}")
 
-    async def get_events_by_guild(
+    async def get_events_by_guild_id(
         self,
-        guild,
-    ):
-        pass
+        guild_id: int,
+        collection_name: str = "Events",
+    ) -> list[dict] | None:
+        events = []
+        try:
+            doc_ref = self.db.collection(collection_name)
+            query = doc_ref.where(
+                filter=FieldFilter("guild_id", "==", guild_id)
+            ).stream()
+            for doc in query:
+                event_data = doc.to_dict()
+                event_data["accepted_users"] = set(event_data.get("accepted_users", []))
+                event_data["maybe_users"] = set(event_data.get("maybe_users", []))
+                event_data["declined_users"] = set(event_data.get("declined_users", []))
+                events.append(doc.to_dict())
+
+            self.logger.info("Event Data retrieved from guild successfully")
+            return events
+        except Exception as e:
+            self.logger.exception(f"Error retrieving event: {e}")
 
     # Maybe I should separate this out into separate functios?
     async def update_event_by_id(
@@ -122,6 +144,29 @@ class FirebaseService:
             doc_ref.delete()
         except Exception as e:
             self.logger.exception(f"Error while deleting document: {e}")
+
+    async def delete_event_by_name(
+        self,
+        event_name: str,
+        collection_name: str = "Events",
+    ) -> bool | None:
+        try:
+            doc_ref = self.db.collection(collection_name)
+            query = doc_ref.where(filter=FieldFilter("name", "==", event_name)).stream()
+            docs = []
+            # a bit hacky but works for now
+            for doc in query:
+                docs.append(doc)
+
+            if not docs:
+                return False
+
+            for doc in docs:
+                doc.reference.delete()
+            return True
+        except Exception as e:
+            self.logger.exception(f"Error while deleting document: {e}")
+            return False
 
 
 service = FirebaseService()
