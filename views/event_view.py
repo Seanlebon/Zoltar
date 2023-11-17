@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
 from enum import Enum
 
 import discord
-from discord import Embed, Guild, Interaction, Member, Message, User
+from discord import Embed, Guild, Member, Message, User
 from discord.ext.commands import Context
 
 

@@ -1,11 +1,7 @@
-from datetime import datetime
-from enum import Enum
-
-import discord
-from discord import Embed, Guild, Interaction, Member, Message, User
+from discord import Member, User
 from discord.ext.commands import Context
 
-from db.firebase_service import service
+from db import fb_service
 from views.event_view import EventView
 
 
@@ -17,7 +13,7 @@ class EventInfoView(EventView):
 
     async def send(self, ctx: Context, event_name: str):
         self.author = ctx.author
-        event_data = await service.get_event_by_name(event_name)
+        event_data = await fb_service.get_event_by_name(event_name)
         if not event_data:
             await ctx.send(
                 content=f"Sorry event **{event_name}** does not exist.",

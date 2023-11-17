@@ -1,14 +1,10 @@
-from datetime import datetime
-from enum import Enum
-
-import discord
-from discord import Embed, Guild, Interaction, Member, Message, User
 from discord.ext.commands import Context
 
-from db.firebase_service import service
+from db import fb_service
+from views.event_view import EventView
 
 
-class EventDeleteView(discord.ui.View):
+class EventDeleteView(EventView):
     def __init__(self):
         super().__init__()
 
@@ -17,7 +13,7 @@ class EventDeleteView(discord.ui.View):
         ctx: Context,
         event_name: str,
     ):
-        if not await service.delete_event_by_name(event_name=event_name):
+        if not await fb_service.delete_event_by_name(event_name=event_name):
             await ctx.send(
                 content=f"Sorry event **{event_name}** does not exist.",
                 view=self,

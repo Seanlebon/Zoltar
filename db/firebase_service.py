@@ -194,4 +194,4 @@ class FirebaseService:
             return False
 
 
-service = FirebaseService()
+fb_service = FirebaseService()

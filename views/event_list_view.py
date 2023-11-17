@@ -1,11 +1,7 @@
-from datetime import datetime
-from enum import Enum
-
 import discord
-from discord import Embed, Guild, Interaction, Member, Message, User
 from discord.ext.commands import Context
 
-from db.firebase_service import service
+from db import fb_service
 from views.event_view import EventView
 
 
@@ -16,7 +12,9 @@ class EventListView(EventView):
 
     async def send(self, ctx: Context):
         self.guild = ctx.guild
-        self.guild_events = await service.get_events_by_guild_id(guild_id=self.guild.id)
+        self.guild_events = await fb_service.get_events_by_guild_id(
+            guild_id=self.guild.id
+        )
         no_events_message = (
             "\n...Seems like there are no events!" if not self.guild_events else ""
         )
