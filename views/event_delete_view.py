@@ -1,6 +1,6 @@
 from discord.ext.commands import Context
 
-from db import fb_service
+from db import service
 from views.event_view import EventView
 
 
@@ -13,7 +13,7 @@ class EventDeleteView(EventView):
         ctx: Context,
         event_name: str,
     ):
-        if not await fb_service.delete_event_by_name(event_name=event_name):
+        if not await service.delete_event_by_name(event_name=event_name):
             await ctx.send(
                 content=f"Sorry event **{event_name}** does not exist.",
                 view=self,

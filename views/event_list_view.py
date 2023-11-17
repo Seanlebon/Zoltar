@@ -1,7 +1,7 @@
 import discord
 from discord.ext.commands import Context
 
-from db import fb_service
+from db import service
 from views.event_view import EventView
 
 
@@ -12,9 +12,7 @@ class EventListView(EventView):
 
     async def send(self, ctx: Context):
         self.guild = ctx.guild
-        self.guild_events = await fb_service.get_events_by_guild_id(
-            guild_id=self.guild.id
-        )
+        self.guild_events = await service.get_events_by_guild_id(guild_id=self.guild.id)
         no_events_message = (
             "\n...Seems like there are no events!" if not self.guild_events else ""
         )

@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from core.bot import ZoltarBot
+from db import service
 from utils.logger import logger
 from views import EventDeleteView, EventInfoView, EventListView, EventQuickView
 
@@ -50,6 +51,12 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         start_time: str,
         end_time: str,
     ) -> None:
+        if await service.get_event_by_name(event_name):
+            await ctx.send(
+                content=f"Sorry **{event_name}** is already an event name. Please choose another name.",
+                ephemeral=True,
+            )
+            return
         # Checking date_time strings:
         # start_time_dt = set_dt(start_time)
         # end_time_dt = set_dt(end_time)

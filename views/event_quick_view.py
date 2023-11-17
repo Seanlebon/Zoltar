@@ -2,7 +2,7 @@ import discord
 from discord import Interaction
 from discord.ext.commands import Context
 
-from db import fb_service
+from db import service
 from views.event_view import EventView
 
 
@@ -21,6 +21,7 @@ class EventQuickView(EventView):
 
     # entry point from a command
     async def send(self, ctx: Context):
+        # if the event exists we want to ensure uniqueness
         self.author = ctx.author
         self.guild = ctx.guild
         embed = self._get_default_embed(
@@ -29,7 +30,7 @@ class EventQuickView(EventView):
 
         self.accepted_users.add(self.author.name)
 
-        self.event_id = await fb_service.create_db_event(
+        self.event_id = await service.create_db_event(
             guild_id=self.guild.id,
             author_name=self.author.name,
             name=self.event_name,
@@ -38,12 +39,12 @@ class EventQuickView(EventView):
             accepted_users=self.accepted_users,
         )
 
-        event_data = await fb_service.get_event_by_id(self.event_id)
+        event_data = await service.get_event_by_id(self.event_id)
         embed = self._add_all_menu_embed_fields(embed, event_data)
         self.message = await ctx.send(embed=embed, view=self)
 
     async def update_message(self):
-        event_data = await fb_service.get_event_by_id(event_id=self.event_id)
+        event_data = await service.get_event_by_id(event_id=self.event_id)
 
         embed = self._get_default_embed(
             event_data["name"],
@@ -63,7 +64,7 @@ class EventQuickView(EventView):
             self.maybe_users.discard(interaction.user.name)
             self.declined_users.discard(interaction.user.name)
 
-            await fb_service.update_event_by_id(
+            await service.update_event_by_id(
                 event_id=self.event_id,
                 accepted_users=self.accepted_users,
                 maybe_users=self.maybe_users,
@@ -79,7 +80,7 @@ class EventQuickView(EventView):
             self.maybe_users.add(interaction.user.name)
             self.declined_users.discard(interaction.user.name)
 
-            await fb_service.update_event_by_id(
+            await service.update_event_by_id(
                 event_id=self.event_id,
                 accepted_users=self.accepted_users,
                 maybe_users=self.maybe_users,
@@ -96,7 +97,7 @@ class EventQuickView(EventView):
             self.maybe_users.discard(interaction.user.name),
             self.declined_users.add(interaction.user.name),
 
-            await fb_service.update_event_by_id(
+            await service.update_event_by_id(
                 event_id=self.event_id,
                 accepted_users=self.accepted_users,
                 maybe_users=self.maybe_users,

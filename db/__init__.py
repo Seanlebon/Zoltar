@@ -1,1 +1,1 @@
-from db.firebase_service import fb_service
+from db.firebase_service import service
