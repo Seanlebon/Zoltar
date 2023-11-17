@@ -6,8 +6,9 @@ from discord.ext.commands import Context
 from core.bot import ZoltarBot
 from utils.logger import logger
 from views.event_delete_view import EventDeleteView
+from views.event_info_view import EventInfoView
 from views.event_list_view import EventListView
-from views.event_view import EventView
+from views.event_quick_view import EventQuickView
 
 
 class EventScheduler(commands.Cog, name="event_scheduler"):
@@ -55,7 +56,7 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
         # Checking date_time strings:
         start_time_dt = set_dt(start_time)
         end_time_dt = set_dt(end_time)
-        view = EventView(event_name, start_time, end_time)
+        view = EventQuickView(event_name, start_time, end_time)
         await view.send(ctx)
 
     @event.command(
@@ -65,6 +66,18 @@ class EventScheduler(commands.Cog, name="event_scheduler"):
     async def all(self, ctx: Context):
         view = EventListView()
         await view.send(ctx)
+
+    @event.command(
+        name="info",
+        description="Zoltar will get the info for an event",
+    )
+    async def info(
+        self,
+        ctx: Context,
+        event_name: str,
+    ):
+        view = EventInfoView()
+        await view.send(ctx, event_name)
 
     @event.command(
         name="delete",

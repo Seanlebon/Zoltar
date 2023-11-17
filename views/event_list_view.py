@@ -6,12 +6,10 @@ from discord import Embed, Guild, Interaction, Member, Message, User
 from discord.ext.commands import Context
 
 from db.firebase_service import service
+from views.event_view import EventView
 
 
-class EventListView(discord.ui.View):
-    author: User | Member
-    guild: Guild
-
+class EventListView(EventView):
     def __init__(self):
         super().__init__()
         self.guild_events = []

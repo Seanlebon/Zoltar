@@ -67,10 +67,33 @@ class FirebaseService:
             event_data["accepted_users"] = set(event_data.get("accepted_users", []))
             event_data["maybe_users"] = set(event_data.get("maybe_users", []))
             event_data["declined_users"] = set(event_data.get("declined_users", []))
-            self.logger.info("Event data retrieved successfully")
+            self.logger.info(f"Event {event_id} retrieved successfully!")
             return event_data
         except Exception as e:
             self.logger.exception(f"Error retrieving event: {e}")
+
+    async def get_event_by_name(
+        self,
+        event_name: str,
+        collection_name: str = "Events",
+    ) -> dict | None:
+        try:
+            doc_ref = self.db.collection(collection_name)
+            query = (
+                doc_ref.where(filter=FieldFilter("name", "==", event_name))
+                .limit(1)
+                .stream()
+            )
+            for doc in query:
+                event_data = doc.to_dict()
+                event_data["accepted_users"] = set(event_data.get("accepted_users", []))
+                event_data["maybe_users"] = set(event_data.get("maybe_users", []))
+                event_data["declined_users"] = set(event_data.get("declined_users", []))
+                self.logger.info(f"Event {event_name} retrieved successfully!")
+                return event_data
+            return None
+        except Exception as e:
+            self.logger.exception(f"Error retrieving event {event_name}: {e}")
 
     async def get_events_by_guild_id(
         self,
@@ -93,7 +116,7 @@ class FirebaseService:
             self.logger.info("Event Data retrieved from guild successfully")
             return events
         except Exception as e:
-            self.logger.exception(f"Error retrieving event: {e}")
+            self.logger.exception(f"Error retrieving events: {e}")
 
     # Maybe I should separate this out into separate functios?
     async def update_event_by_id(
@@ -142,8 +165,9 @@ class FirebaseService:
         try:
             doc_ref = self.db.collection(collection_name).document(event_id)
             doc_ref.delete()
+            self.logger.info(f"Event {event_id} deleted succesfully")
         except Exception as e:
-            self.logger.exception(f"Error while deleting document: {e}")
+            self.logger.exception(f"Error while deleting event {event_id}: {e}")
 
     async def delete_event_by_name(
         self,
@@ -163,9 +187,10 @@ class FirebaseService:
 
             for doc in docs:
                 doc.reference.delete()
+            self.logger.info(f"Event {event_name} deleted succesfully")
             return True
         except Exception as e:
-            self.logger.exception(f"Error while deleting document: {e}")
+            self.logger.exception(f"Error while deleting document {event_name}: {e}")
             return False
 
 
